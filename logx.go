@@ -74,7 +74,7 @@ func InitLogger(logPath string, filename string) {
 			panic(err)
 		}
 		filt.SetLevel(level)
-		filt.SetFormatter(&logrus.TextFormatter{TimestampFormat: time.RFC3339})
+		filt.SetFormatter(txtFormatter)
 		switch xmlfilt.Type {
 		case "console":
 			filt.SetOutput(os.Stdout)
