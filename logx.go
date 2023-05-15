@@ -22,9 +22,9 @@ var txtFormatter *prefixed.TextFormatter
 func init() {
 	txtFormatter = &prefixed.TextFormatter{
 		FullTimestamp:   true,
-		TimestampFormat: "2006-01-02.15:04:05.000000",
+		TimestampFormat: "2006-01-02.15:04:05",
 		ForceFormatting: true,
-		ForceColors:     true,
+		ForceColors:     false,
 	}
 }
 
@@ -46,25 +46,22 @@ type xmlLoggerConfig struct {
 }
 
 // Load XML configuration; see conf/log.xml for documentation
-func InitLogger(logPath string, filename string) {
+func InitLogger(logPath string, filename string) error {
 
 	// Open the configuration file
 	fd, err := os.Open(filename)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "InitLogger: Error: Could not open %q for reading: %s\n", filename, err)
-		os.Exit(1)
+		return fmt.Errorf("\"InitLogger: Error: Could not open %q for reading: %w", filename, err)
 	}
 
 	contents, err := ioutil.ReadAll(fd)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "InitLogger: Error: Could not read %q: %s\n", filename, err)
-		os.Exit(1)
+		return fmt.Errorf("InitLogger: Error: Could not read %q: %w", filename, err)
 	}
 
 	xc := new(xmlLoggerConfig)
 	if err := xml.Unmarshal(contents, xc); err != nil {
-		fmt.Fprintf(os.Stderr, "InitLogger: Error: Could not parse XML configuration in %q: %s\n", filename, err)
-		os.Exit(1)
+		return fmt.Errorf("InitLogger: Error: Could not parse XML configuration in %q: %w", filename, err)
 	}
 
 	for _, xmlfilt := range xc.Filter {
@@ -80,9 +77,10 @@ func InitLogger(logPath string, filename string) {
 			filt.SetOutput(os.Stdout)
 		case "file":
 			output, err := xmlToFileLogWriter(filename, xmlfilt.Property)
-			if nil == err {
-				filt.SetOutput(output)
+			if nil != err {
+				return err
 			}
+			filt.SetOutput(output)
 		}
 		loggers[xmlfilt.Tag] = filt
 	}
@@ -133,6 +131,7 @@ func InitLogger(logPath string, filename string) {
 		logrus.InfoLevel:  stdout.Out,
 		logrus.WarnLevel:  stdout.Out,
 	}, txtFormatter))
+	return nil
 }
 
 // Parse a number with K/M/G suffixes based on thousands (1000) or 2^10 (1024)
@@ -178,8 +177,7 @@ func xmlToFileLogWriter(filename string, props []xmlProperty) (io.Writer, error)
 		rotatelogs.WithRotationSize(int64(maxsize)),
 	)
 	if nil != err {
-		logrus.Errorf("打开日志文件失败，默认输出到stderr")
-		return nil, err
+		return nil, fmt.Errorf("rotatelogs open fail %w", err)
 	} else {
 		return rotate, nil
 	}
