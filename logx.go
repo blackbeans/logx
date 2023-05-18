@@ -86,7 +86,7 @@ func InitLogger(logPath string, filename string) error {
 	}
 
 	stderr, ok := loggers["stderr"]
-	if ok {
+	if !ok {
 		stderr = logrus.New()
 		stderr.SetLevel(logrus.ErrorLevel)
 		stderr.SetFormatter(txtFormatter)
@@ -104,10 +104,10 @@ func InitLogger(logPath string, filename string) error {
 
 	//
 	stdout, ok := loggers["stdout"]
-	if ok {
-		stderr = logrus.New()
-		stderr.SetLevel(logrus.InfoLevel)
-		stderr.SetFormatter(txtFormatter)
+	if !ok {
+		stdout = logrus.New()
+		stdout.SetLevel(logrus.InfoLevel)
+		stdout.SetFormatter(txtFormatter)
 		rotate, err := rotatelogs.New(
 			path.Join(logPath, "stdout.log-%Y%m%d%H"),
 			rotatelogs.WithLinkName(path.Join(logPath, "stdout.log")),
@@ -116,8 +116,8 @@ func InitLogger(logPath string, filename string) error {
 		if nil != err {
 			panic(err)
 		}
-		stderr.SetOutput(rotate)
-		loggers["stdout"] = stderr
+		stdout.SetOutput(rotate)
+		loggers["stdout"] = stdout
 	}
 
 	logrus.AddHook(lfshook.NewHook(lfshook.WriterMap{
