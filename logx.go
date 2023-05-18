@@ -76,7 +76,7 @@ func InitLogger(logPath string, filename string) error {
 		case "console":
 			filt.SetOutput(os.Stdout)
 		case "file":
-			output, err := xmlToFileLogWriter(filename, xmlfilt.Property)
+			output, err := xmlToFileLogWriter(path.Join(logPath, xmlfilt.Tag+".log"), xmlfilt.Property)
 			if nil != err {
 				return err
 			}
@@ -160,8 +160,6 @@ func xmlToFileLogWriter(filename string, props []xmlProperty) (io.Writer, error)
 	// Parse properties
 	for _, prop := range props {
 		switch prop.Name {
-		case "filename":
-			filename = strings.Trim(prop.Value, " \r\n")
 		case "maxbackups":
 			maxbackups, _ = strconv.ParseUint(strings.Trim(prop.Value, " \r\n"), 10, 32)
 		case "maxsize":
