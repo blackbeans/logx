@@ -26,6 +26,18 @@ func init() {
 		ForceFormatting: true,
 		ForceColors:     false,
 	}
+	std := logrus.StandardLogger()
+	logrus.AddHook(lfshook.NewHook(lfshook.WriterMap{
+		logrus.ErrorLevel: std.Out,
+		logrus.PanicLevel: std.Out,
+		logrus.FatalLevel: std.Out,
+	}, txtFormatter))
+
+	logrus.AddHook(lfshook.NewHook(lfshook.WriterMap{
+		logrus.DebugLevel: std.Out,
+		logrus.InfoLevel:  std.Out,
+		logrus.WarnLevel:  std.Out,
+	}, txtFormatter))
 }
 
 type xmlProperty struct {
