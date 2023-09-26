@@ -197,5 +197,10 @@ func GetLogger(name string) *logrus.Logger {
 	if l, ok := loggers[name]; ok {
 		return l
 	}
+
+	if l, ok := loggers["stdout"]; ok {
+		return l
+	}
+
 	return logrus.StandardLogger()
 }
